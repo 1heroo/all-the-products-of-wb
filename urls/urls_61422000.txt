@@ -1,0 +1,1 @@
+['https://basket-04.wb.ru/vol614/part61421/61421496/info/ru/card.json', 'https://basket-04.wb.ru/vol614/part61421/61421497/info/ru/card.json', 'https://basket-04.wb.ru/vol614/part61421/61421870/info/ru/card.json', 'https://basket-04.wb.ru/vol614/part61421/61421871/info/ru/card.json', 'https://basket-04.wb.ru/vol614/part61421/61421872/info/ru/card.json']

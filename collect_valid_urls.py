@@ -1,5 +1,6 @@
 import asyncio
 import aiohttp
+from time import sleep
 
 
 params = {'kind': 2, '_v': '9.3.39'}
@@ -9,26 +10,31 @@ head = 'https://basket-0{i}.wb.ru'
 template = '/vol{vol}/part{part}/{article}/info/ru/card.json'
 
 
-async def async_range(start, end):
-    for i in range(start, end):
-        yield i
-        await asyncio.sleep(0.0)
-
-
 async def isvalid_url(url: str):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession() as session:        
         async with session.get(url, headers=headers, params=params) as response:
-            return response.status == 200
+            status = response.status == 200
+            return url if status else False
 
 
-async def find_url(tail: str):
+def make_head(article: int):
     global head
-    url = head + tail
-    async for i in async_range(1, 10):
-        url = url.format(i=i)
-        if await isvalid_url(url):
-            return url
-    return False
+    number = 0
+    if article < 43500000:
+        number = 3
+    elif article < 72000000:
+        number = 4
+    elif article < 100800000:
+        number = 5 
+    elif article < 106300000:
+        number = 6
+    elif article < 111600000:
+        number = 7
+    elif article < 117000000:
+        number = 8
+    else:
+        number = 9
+    return head.format(i=number)
 
 
 def make_tail(article: str):
@@ -81,19 +87,40 @@ def make_tail(article: str):
         return template.format(**args)
 
 
-async def main():
+stop_point = 130077000
+
+new_stop = 0
+
+
+async def main(stop):
+    global new_stop
     tasks = []
-    for article in range(1, 110_000_000):
+    for article in range(stop, 135_000_000):
         tail = make_tail(str(article))
-        tasks += [asyncio.create_task(find_url(tail))]
-        if article % 5000 == 0:
+        head = make_head(article)
+        url = head + tail
+        tasks += [asyncio.create_task(isvalid_url(url))]
+        if article % 1000 == 0:
+            new_stop = stop
+            print(article)
             res = await asyncio.gather(*tasks)
             res = [item for item in res if item]
+            tasks = []
             with open(f'urls/urls_{article}.txt', 'w') as file:
                 file.write(str(res))
-                tasks = []
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    while True:
+        try:
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(main(stop_point))
+        except Exception as e:
+            print(e)
+            print(new_stop, 'new stop')
+            stop_point = new_stop
+            
+            sleep(30)
+            
+
+
